@@ -39,25 +39,6 @@ void CameraRenderApplication::createScene(void)
   main_light->setType(Ogre::Light::LT_DIRECTIONAL);
   main_light->setAttenuation(10000.0f, 1.0f, 0.0f, 0);
   main_light->setCastShadows(false);
-  
-
-  int i = 0;
-  for(int x = -20; x < 20; x++)
-  {
-    for(int y = -20; y < 20; y++)
-    {
-      for(int z = -20; z < 20; z++)
-      {
-        //Ogre::Light* light = mSceneMgr->createLight("DirectionalLight" + std::to_string(i));
-        //light->setType(Ogre::Light::LT_DIRECTIONAL);
-        //light->setAttenuation(10000.0f, 1.0f, 0.0f, 0);
-        //light->setCastShadows(false);
-        //light->setPosition(x, y, z);
-        //light->setDirection(-x, -y, -z);
-        i++;
-      }
-    }
-  }
 }
 
 void CameraRenderApplication::loadModel(std::string entity_name, std::string filename)

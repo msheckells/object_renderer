@@ -105,6 +105,20 @@ void OgreApplication::createViewports(void)
     // Alter the camera aspect ratio to match the viewport
     mCamera->setAspectRatio(Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));
 }
+
+void OgreApplication::createDepthRTT(void)
+{
+  Ogre::TexturePtr texPtr = Ogre::TextureManager::getSingleton().createManual("DepthMap", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, Ogre::TEX_TYPE_2D, 512, 512, 0, Ogre::PF_R8G8B8, Ogre::TU_RENDERTARGET);
+  Ogre::RenderTexture *depth_map = texPtr->getBuffer()->getRenderTarget();
+  depth_map->addViewport(mCamera);
+
+  Ogre::MaterialPtr matPtr = Ogre::MaterialManager::getSingleton().create("DepthMapMat", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+  matPtr->getTechnique(0)->getPass(0)->createTextureUnitState("DepthMap");
+  matPtr->getTechnique(0)->getPass(0)->setDepthCheckEnabled(false);
+  matPtr->getTechnique(0)->getPass(0)->setDepthWriteEnabled(false);
+  matPtr->getTechnique(0)->getPass(0)->setLightingEnabled(false);
+}
+
 //---------------------------------------------------------------------------
 void OgreApplication::setupResources(void)
 {
@@ -154,6 +168,12 @@ void OgreApplication::go(void)
 bool OgreApplication::renderOnce(void)
 {
   Ogre::WindowEventUtilities::messagePump();
+
+  // Update depth RTT
+  Ogre::TexturePtr texPtr = Ogre::TextureManager::getSingleton().getByName("DepthMap");
+  Ogre::RenderTexture* depth_map = texPtr->getBuffer()->getRenderTarget();
+  depth_map->update();
+
   return mRoot->renderOneFrame();
 }
 
@@ -190,6 +210,7 @@ bool OgreApplication::setup(void)
     chooseSceneManager();
     createCamera();
     createViewports();
+    createDepthRTT();
 
     // Set default mipmap level (NB some APIs ignore this)
     Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);

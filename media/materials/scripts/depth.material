@@ -1,0 +1,31 @@
+vertex_program Ogre/DepthMapVS glsl
+{
+  source depth_map.vert
+  default_params
+  {
+    param_named_auto texelOffsets texel_offsets
+  }
+}
+
+fragment_program Ogre/DepthMapFS glsl
+{
+  source depth_map.frag
+  default_params
+  {
+    param_named_auto pNear near_clip_distance
+    param_named_auto pFar far_clip_distance
+  }
+}
+
+material Ogre/DepthMap
+{
+  technique
+  {
+    pass
+    {
+      vertex_program_ref Ogre/DepthMapVS { }
+      fragment_program_ref Ogre/DepthMapFS { }
+    }
+  }
+}
+

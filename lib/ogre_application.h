@@ -78,6 +78,7 @@ protected:
     virtual bool configure(void);
     virtual void chooseSceneManager(void);
     virtual void createCamera(void);
+    virtual void createDepthRTT(void);
     virtual void createScene(void) = 0; // Override me!
     virtual void createViewports(void);
     virtual void setupResources(void);
