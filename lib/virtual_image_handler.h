@@ -20,6 +20,7 @@ public:
 
   int getImageHeight();
   int getImageWidth();
+  cv::Mat getVirtualDepth(double xp, double yp, double zp, double xl, double yl, double zl);
   cv::Mat getVirtualImage(double xp, double yp, double zp, double xl, double yl, double zl);    
   cv::Mat getVirtualImage(double xp, double yp, double zp, double w, double x, double y, double z);    
   unsigned char* getVirtualImage2(double xp, double yp, double zp, double w, double x, double y, double z);    

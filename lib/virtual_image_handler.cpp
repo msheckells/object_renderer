@@ -62,6 +62,23 @@ Mat VirtualImageHandler::getVirtualImage(double xp, double yp, double zp, double
   return im;
 }
 
+Mat VirtualImageHandler::getVirtualDepth(double xp, double yp, double zp, double xl, double yl, double zl)
+{
+  int width = imgWidth;
+  int height = imgHeight;
+  size_t bytesPerPixel = app->getBytesPerDepthPixel();
+
+  app->setCameraPosition(xp,yp,zp);
+  app->setCameraLookAt(xl,yl,zl);
+
+  app->renderOnce();
+
+  unsigned char* data = new unsigned char[width*height*bytesPerPixel];
+  app->getDepthData(data);
+  Mat im(height, width, CV_32F, data);
+  return im;
+}
+
 Mat VirtualImageHandler::getVirtualImage(double xp, double yp, double zp, double xl, double yl, double zl)
 {
   int width = imgWidth;

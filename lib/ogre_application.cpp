@@ -32,6 +32,7 @@ OgreApplication::OgreApplication(void)
     mPluginsCfg(Ogre::StringUtil::BLANK)
 {
     m_ResourcePath = "../../cfg/";
+   
 }
 
 //---------------------------------------------------------------------------
@@ -100,7 +101,7 @@ void OgreApplication::createViewports(void)
 {
     // Create one viewport, entire window
     Ogre::Viewport* vp = mWindow->addViewport(mCamera);
-    vp->setBackgroundColour(Ogre::ColourValue(0.4,0.4,0.4));
+    vp->setBackgroundColour(Ogre::ColourValue(0.0,0.0,0.0));
 
     // Alter the camera aspect ratio to match the viewport
     mCamera->setAspectRatio(Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));
@@ -108,15 +109,34 @@ void OgreApplication::createViewports(void)
 
 void OgreApplication::createDepthRTT(void)
 {
-  Ogre::TexturePtr texPtr = Ogre::TextureManager::getSingleton().createManual("DepthMap", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, Ogre::TEX_TYPE_2D, 512, 512, 0, Ogre::PF_R8G8B8, Ogre::TU_RENDERTARGET);
+  Ogre::TexturePtr texPtr = 
+    Ogre::TextureManager::getSingleton().createManual(
+      "DepthMap", 
+      Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, 
+      Ogre::TEX_TYPE_2D, 
+      mWindow->getWidth(), mWindow->getHeight(), 
+      0, 
+      Ogre::PF_FLOAT32_R, 
+      Ogre::TU_RENDERTARGET);
+
   Ogre::RenderTexture *depth_map = texPtr->getBuffer()->getRenderTarget();
   depth_map->addViewport(mCamera);
+  depth_map->getViewport(0)->setClearEveryFrame(true);
+  depth_map->getViewport(0)->setBackgroundColour(Ogre::ColourValue::Black);
+  depth_map->getViewport(0)->setOverlaysEnabled(false);
 
   Ogre::MaterialPtr matPtr = Ogre::MaterialManager::getSingleton().create("DepthMapMat", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
   matPtr->getTechnique(0)->getPass(0)->createTextureUnitState("DepthMap");
   matPtr->getTechnique(0)->getPass(0)->setDepthCheckEnabled(false);
   matPtr->getTechnique(0)->getPass(0)->setDepthWriteEnabled(false);
   matPtr->getTechnique(0)->getPass(0)->setLightingEnabled(false);
+
+  Ogre::HardwarePixelBufferSharedPtr pixelBuffer =  texPtr->getBuffer();
+  mDepthBuffer = new unsigned char[mWindow->getWidth()*mWindow->getHeight()*pixelBuffer->getFormat()];
+
+  this->mDepthMaterial = (Ogre::Material*)Ogre::MaterialManager::getSingleton().getByName("Ogre/DepthMap").get();
+  this->mDepthMaterial->load();
+  depth_map->addListener(this);  
 }
 
 //---------------------------------------------------------------------------
@@ -165,6 +185,37 @@ void OgreApplication::go(void)
     //destroyScene();
 }
 
+void OgreApplication::preRenderTargetUpdate(const Ogre::RenderTargetEvent& rte)
+{
+  Ogre::TexturePtr texPtr = Ogre::TextureManager::getSingleton().getByName("DepthMap");
+  Ogre::RenderTexture* depth_map = texPtr->getBuffer()->getRenderTarget();
+
+  mSceneMgr->_suppressRenderStateChanges(true);
+  mSceneMgr->_setPass(mDepthMaterial->getBestTechnique()->getPass(0), true, false);
+  mRenderSys->_setViewport(depth_map->getViewport(0));
+  mRenderSys->_setProjectionMatrix(mCamera->getProjectionMatrixRS());
+  mRenderSys->_setViewMatrix(mCamera->getViewMatrix(true));
+}
+ 
+void OgreApplication::postRenderTargetUpdate(const Ogre::RenderTargetEvent& rte)
+{
+  Ogre::TexturePtr texPtr = Ogre::TextureManager::getSingleton().getByName("DepthMap");
+  Ogre::HardwarePixelBufferSharedPtr pixelBuffer =  texPtr->getBuffer();
+
+  mSceneMgr->_suppressRenderStateChanges(false);
+  Ogre::Box extents(0, 0, mWindow->getWidth(), mWindow->getHeight());
+  Ogre::PixelBox pb(extents, pixelBuffer->getFormat(), mDepthBuffer);
+  pixelBuffer->blitToMemory(pb);
+}
+
+
+void OgreApplication::saveDepthMap(std::string filename)
+{
+  Ogre::TexturePtr texPtr = Ogre::TextureManager::getSingleton().getByName("DepthMap");
+  Ogre::RenderTexture* depth_map = texPtr->getBuffer()->getRenderTarget();
+  depth_map->writeContentsToFile(filename);
+}
+
 bool OgreApplication::renderOnce(void)
 {
   Ogre::WindowEventUtilities::messagePump();
@@ -180,6 +231,23 @@ bool OgreApplication::renderOnce(void)
 size_t OgreApplication::getBytesPerPixel(void)
 {
   return Ogre::PixelUtil::getNumElemBytes(Ogre::PF_BYTE_RGBA/*Ogre::PF_L8*/);
+}
+
+size_t OgreApplication::getBytesPerDepthPixel(void)
+{
+  return Ogre::PixelUtil::getNumElemBytes(Ogre::PF_FLOAT32_R/*Ogre::PF_L8*/);
+}
+
+void OgreApplication::getDepthData(unsigned char* data)
+{
+  Ogre::TexturePtr texPtr = Ogre::TextureManager::getSingleton().getByName("DepthMap");
+  Ogre::HardwarePixelBufferSharedPtr pixelBuffer =  texPtr->getBuffer();
+  size_t len = mWindow->getWidth()*mWindow->getHeight()*this->getBytesPerDepthPixel();
+  
+  if(data)
+  {
+    memcpy(data, mDepthBuffer, len);
+  }
 }
 
 void OgreApplication::getRenderData(int width, int height, unsigned char* data)
@@ -201,6 +269,7 @@ bool OgreApplication::setup(void)
     lm->createLog("./ogre.log", true, false, false); 
      
     mRoot = new Ogre::Root(mPluginsCfg);
+    // Get pointer to rendering system
 
     setupResources();
 
@@ -210,13 +279,15 @@ bool OgreApplication::setup(void)
     chooseSceneManager();
     createCamera();
     createViewports();
-    createDepthRTT();
+    this->mRenderSys = mRoot->getRenderSystem();
 
     // Set default mipmap level (NB some APIs ignore this)
     Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
 
     // Load resources
     loadResources();
+
+    createDepthRTT();
 
     // Create the scene
     createScene();

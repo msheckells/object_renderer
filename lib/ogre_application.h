@@ -26,6 +26,7 @@ http://www.ogre3d.org/wiki/
 #include <OgreSceneManager.h>
 #include <OgreRenderWindow.h>
 #include <OgreConfigFile.h>
+#include <OgreRenderTargetListener.h>
 
 #  include <OISEvents.h>
 #  include <OISInputManager.h>
@@ -58,7 +59,7 @@ http://www.ogre3d.org/wiki/
 
 //---------------------------------------------------------------------------
 
-class OgreApplication
+class OgreApplication : public Ogre::RenderTargetListener
 {
 public:
     OgreApplication(void);
@@ -68,12 +69,18 @@ public:
     virtual bool renderOnce(void);
     virtual void destroyScene(void);
     virtual void getRenderData(int width, int height, unsigned char* data);
+    virtual void getDepthData(unsigned char* data);
     virtual void saveRenderToFile(std::string filename);
     size_t getBytesPerPixel(void);
+    size_t getBytesPerDepthPixel(void);
     int getWindowWidth(void);
     int getWindowHeight(void);
+    void saveDepthMap(std::string filename);
 
 protected:
+    virtual void preRenderTargetUpdate(const Ogre::RenderTargetEvent& rte);
+    virtual void postRenderTargetUpdate(const Ogre::RenderTargetEvent& rte);
+
     virtual bool setup();
     virtual bool configure(void);
     virtual void chooseSceneManager(void);
@@ -90,6 +97,9 @@ protected:
     Ogre::RenderWindow*         mWindow;
     Ogre::String                mResourcesCfg;
     Ogre::String                mPluginsCfg;
+    Ogre::Material*             mDepthMaterial;
+    Ogre::RenderSystem*             mRenderSys;
+    unsigned char* mDepthBuffer;
 
     // Added for Mac compatibility
     Ogre::String                 m_ResourcePath;

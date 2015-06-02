@@ -42,6 +42,7 @@ int main(int argc, char *argv[])
       app.main_light->setPosition(x,y,z);
       app.main_light->setDirection(-x,-y,-z);
       Mat im = vih.getVirtualImage(x, y, z, 0, 0, 0);
+      Mat depth = vih.getVirtualDepth(x, y, z, 0, 0, 0);
 
       double qw, qx, qy, qz;
       app.getCameraOrientation(&qw, &qx, &qy, &qz);
@@ -77,7 +78,12 @@ int main(int argc, char *argv[])
       write( fs_desc, "descriptors", desc );
       fs_desc.release();   
 
+      FileStorage fs_depth(std::string("depth") + std::to_string(i) + std::string(".xml"), FileStorage::WRITE);
+      write( fs_depth, "depth", depth );
+      fs_depth.release();   
+
       imwrite(std::string("keyframe") + std::to_string(i) + std::string(".jpg"), im );
+      //app.saveDepthMap(std::string("depth") + std::to_string(i) + std::string(".png"));
     }
     app.destroyScene();
   } catch(Ogre::Exception& e)  {

@@ -45,7 +45,7 @@ void CameraRenderApplication::loadModel(std::string entity_name, std::string fil
 {
  // Create an Entity
   Ogre::Entity* obj = mSceneMgr->createEntity(entity_name, filename);
-  //obj->setCastShadows(false); 
+  //obj->setMaterialName("Ogre/DepthMap");
   // Create a SceneNode and attach the Entity to it
   Ogre::SceneNode* objNode = mSceneMgr->getRootSceneNode()->createChildSceneNode(entity_name+"Node");
   objNode->attachObject(obj);
