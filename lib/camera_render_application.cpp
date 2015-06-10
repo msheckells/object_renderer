@@ -18,7 +18,8 @@ http://www.ogre3d.org/wiki/
 #include "camera_render_application.h"
 
 //---------------------------------------------------------------------------
-CameraRenderApplication::CameraRenderApplication(void)
+CameraRenderApplication::CameraRenderApplication(std::string resourcePath) :
+  OgreApplication(resourcePath)
 {
 }
 //---------------------------------------------------------------------------
@@ -77,6 +78,27 @@ void CameraRenderApplication::setCameraOrientation(double w, double x, double y 
 {
   Ogre::Quaternion r(Ogre::Degree(90), Ogre::Vector3::UNIT_X);
   mCamera->setOrientation(Ogre::Quaternion(w,x,y,z)*r);
+}
+
+void CameraRenderApplication::getCameraIntrinsics(double* fx, double* fy, double* cx, double* cy)
+{
+  Ogre::Matrix4 projMat = mCamera->getProjectionMatrix();
+  if(fx)
+  {
+    *fx = projMat[0][0]*getWindowWidth()/2.;
+  }
+  if(fy)
+  {
+    *fy = projMat[1][1]*getWindowHeight()/2.;
+  }
+  if(cx)
+  {
+    *cx = getWindowWidth()/2.;
+  }
+  if(cy)
+  {
+    *cy = getWindowHeight()/2.;
+  }
 }
 
 void CameraRenderApplication::setCameraLookAt(double x, double y , double z)

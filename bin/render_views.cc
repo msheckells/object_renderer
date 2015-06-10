@@ -14,22 +14,30 @@ using namespace cv;
 int main(int argc, char *argv[])
 {
 
-  if (argc < 4)
+  if (argc < 5)
   {
-    std::cout << "Usage: " << argv[0] << " <model_file> <radius> <num_samples>" << std::endl;
+    std::cout << "Usage: " << argv[0] << " <output_dir> <model_file> <radius> <num_samples>" << std::endl;
     return -1;  
   }
 
-  double sample_radius = std::stod(argv[2]);
-  double num_samples = std::stoi(argv[3]);
+  std::string output_dir(argv[1]);
+  double sample_radius = std::stod(argv[3]);
+  double num_samples = std::stoi(argv[4]);
   
 
   // Create application object
-  CameraRenderApplication app;
+  CameraRenderApplication app("../../cfg/");
   app.go();
-  app.loadModel("model", std::string(argv[1])); 
+  app.loadModel("model", std::string(argv[2])); 
   
   VirtualImageHandler vih(&app);
+  namedWindow( "Image Keypoints", WINDOW_AUTOSIZE );
+
+  std::cout << "Intrinsics:" << std::endl << vih.getCameraIntrinsics() << std::endl;
+  FileStorage fs_intrinsics(output_dir + std::string("/intrinsics.xml"), FileStorage::WRITE);
+  write( fs_intrinsics, "intrinsics",  vih.getCameraIntrinsics());
+  fs_intrinsics.release();   
+
   try 
   {
     for(int i = 0; i < num_samples; i++)
@@ -62,27 +70,36 @@ int main(int argc, char *argv[])
 
       std::cout << "Image position: (" << x << ", " << y << ", " << z << ")" << std::endl;
 
-      namedWindow( "Image Keypoints", WINDOW_AUTOSIZE );
       imshow("Image Keypoints", kp_im);
-      waitKey(-1);
+      waitKey(1);
     
-      FileStorage fs(std::string("keypoints") + std::to_string(i) + std::string(".xml"), FileStorage::WRITE);
+      std::stringstream ss;
+      ss << output_dir << "/keypoints" << std::setw(3) << std::setfill('0') << i << ".xml";
+      FileStorage fs(ss.str(), FileStorage::WRITE);
       write( fs, "keypoints", kps );
       fs.release();   
 
-      FileStorage fs_pose(std::string("pose") + std::to_string(i) + std::string(".xml"), FileStorage::WRITE);
+      ss.str(std::string());
+      ss << output_dir << "/pose" << std::setw(3) << std::setfill('0') << i << ".xml";
+      FileStorage fs_pose(ss.str(), FileStorage::WRITE);
       write( fs_pose, "pose", pose );
       fs_pose.release();   
 
-      FileStorage fs_desc(std::string("descriptors") + std::to_string(i) + std::string(".xml"), FileStorage::WRITE);
+      ss.str(std::string());
+      ss << output_dir << "/descriptors" << std::setw(3) << std::setfill('0') << i << ".xml";
+      FileStorage fs_desc(ss.str(), FileStorage::WRITE);
       write( fs_desc, "descriptors", desc );
       fs_desc.release();   
 
-      FileStorage fs_depth(std::string("depth") + std::to_string(i) + std::string(".xml"), FileStorage::WRITE);
+      ss.str(std::string());
+      ss << output_dir << "/depth" << std::setw(3) << std::setfill('0') << i << ".xml";
+      FileStorage fs_depth(ss.str(), FileStorage::WRITE);
       write( fs_depth, "depth", depth );
       fs_depth.release();   
 
-      imwrite(std::string("keyframe") + std::to_string(i) + std::string(".jpg"), im );
+      ss.str(std::string());
+      ss << output_dir << "/keyframe" << std::setw(3) << std::setfill('0') << i << ".jpg";
+      imwrite(ss.str(), im );
       //app.saveDepthMap(std::string("depth") + std::to_string(i) + std::string(".png"));
     }
     app.destroyScene();

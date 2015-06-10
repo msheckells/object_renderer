@@ -62,7 +62,7 @@ http://www.ogre3d.org/wiki/
 class OgreApplication : public Ogre::RenderTargetListener
 {
 public:
-    OgreApplication(void);
+    OgreApplication(std::string resourcePath);
     virtual ~OgreApplication(void);
 
     virtual void go(void);

@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6) 
-project (vision-oc)
+project (object_renderer)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules /usr/local/lib/OGRE/cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 
 #ADD_DEFINITIONS(-g -O -std=c++0x -pthread)
 ADD_DEFINITIONS(-std=c++0x)
@@ -50,22 +50,8 @@ include_directories( ${EIGEN3_INCLUDE_DIRS} )
 #find_package(Eigen REQUIRED)
 #include_directories(${Eigen_INCLUDE_DIRS})
 
-find_package(GCOP REQUIRED algos systems)
-include_directories( ${GCOP_INCLUDE_DIRS})
-
 find_package( OpenCV REQUIRED)
 include_directories( ${OpenCV_INCLUDE_DIRS} )
-
-
-find_package(Boost REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS})
-set(UTIL_LIBS ${UTIL_LIBS} ${Boost_LIBRARY})
-
-
-
-find_package(TinyXML)
-include_directories(${TINYXML_INCLUDE_DIR})
-set(UTIL_LIBS ${UTIL_LIBS} ${TINYXML_LIBRARIES})
 
 find_package(OGRE REQUIRED)
 find_package(OIS REQUIRED)
@@ -90,7 +76,9 @@ set(CPACK_SOURCE_IGNORE_FILES
 
 INCLUDE(CPack)
 
-#INSTALL(FILES ${headers} DESTINATION include/gcop)
-
-# uncomment the following line to get CMake variables to print to screen
-# include(CMakePrintSystemInformation)o
+set(headers
+    lib/ogre_application.h
+    lib/camera_render_application.h
+    lib/virtual_image_handler.h)
+#MESSAGE( STATUS "Headers: " ${headers} )
+INSTALL(FILES ${headers} DESTINATION include/object_renderer)

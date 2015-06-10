@@ -23,7 +23,7 @@ http://www.ogre3d.org/wiki/
 #endif
 
 //---------------------------------------------------------------------------
-OgreApplication::OgreApplication(void)
+OgreApplication::OgreApplication(std::string resourcePath)
     : mRoot(0),
     mCamera(0),
     mSceneMgr(0),
@@ -31,7 +31,8 @@ OgreApplication::OgreApplication(void)
     mResourcesCfg(Ogre::StringUtil::BLANK),
     mPluginsCfg(Ogre::StringUtil::BLANK)
 {
-    m_ResourcePath = "../../cfg/";
+    //m_ResourcePath = "../../cfg/";
+    m_ResourcePath = resourcePath;
    
 }
 
@@ -47,6 +48,38 @@ bool OgreApplication::configure(void)
     // Show the configuration dialog and initialise the system.
     // You can skip this and use root.restoreConfig() to load configuration
     // settings if you were sure there are valid ones saved in ogre.cfg.
+    /****/
+    mRoot->loadPlugin("/usr/local/lib/OGRE/RenderSystem_GL"); 
+    mRoot->loadPlugin("/usr/local/lib/OGRE/Plugin_ParticleFX");
+    mRoot->loadPlugin("/usr/local/lib/OGRE/Plugin_CgProgramManager");
+    mRoot->loadPlugin("/usr/local/lib/OGRE/Plugin_OctreeSceneManager");
+    mRoot->loadPlugin("/usr/local/lib/OGRE/Plugin_PCZSceneManager");
+    mRoot->loadPlugin("/usr/local/lib/OGRE/Plugin_OctreeZone");
+    mRoot->loadPlugin("/usr/local/lib/OGRE/Plugin_BSPSceneManager");
+    Ogre::RenderSystemList rs = mRoot->getAvailableRenderers(); 
+    if(rs.size() && rs.at(0)->getName().compare("RenderSystem_GL"))
+    { 
+        Ogre::RenderSystem * r=rs.at(0); 
+        r->setConfigOption("Full Screen","No");  
+        r->setConfigOption("Video Mode","640 x 480"); 
+        r->setConfigOption("Display Frequency","50 Hz");
+        r->setConfigOption("FSAA","16");
+        r->setConfigOption("Fixed Pipeline Enabled","Yes");
+        r->setConfigOption("RTT Preferred Mode","FBO");
+        r->setConfigOption("VSync","No");
+        r->setConfigOption("sRGB Gamma Conversion","No");
+        //r->setConfigOption("Video Mode","800 x 600 @ 16-bit colour"); 
+        mRoot->setRenderSystem(r); 
+        mWindow = mRoot->initialise(true, "OGRE Render Window");
+        return true;
+    }
+    else
+    { 
+      	// report error
+        return false;
+    } 
+    /****/
+    /****
     if(mRoot->showConfigDialog())
     {
         //mRoot->restoreConfig();
@@ -56,10 +89,11 @@ bool OgreApplication::configure(void)
 
         return true;
     }
-  /*  else
+    else
     {
         return false;
-    }*/
+    }
+    /****/
 }
 //---------------------------------------------------------------------------
 void OgreApplication::chooseSceneManager(void)

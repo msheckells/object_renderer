@@ -20,7 +20,9 @@ public:
 
   int getImageHeight();
   int getImageWidth();
+  cv::Mat getCameraIntrinsics();
   cv::Mat getVirtualDepth(double xp, double yp, double zp, double xl, double yl, double zl);
+  cv::Mat getVirtualDepth(double xp, double yp, double zp, double w, double x, double y, double z);
   cv::Mat getVirtualImage(double xp, double yp, double zp, double xl, double yl, double zl);    
   cv::Mat getVirtualImage(double xp, double yp, double zp, double w, double x, double y, double z);    
   unsigned char* getVirtualImage2(double xp, double yp, double zp, double w, double x, double y, double z);    
@@ -32,6 +34,9 @@ public:
   double getMeanKeypointError(std::vector<cv::KeyPoint>& kps1, std::vector<cv::KeyPoint>& kps2, std::vector< cv::DMatch >& matches);
   double getMeanKeypointError(cv::Mat im, std::vector<cv::KeyPoint>& kps_goal, cv::gpu::GpuMat& desc_gpu_goal, int* num_matches = 0);
   double getMeanKeypointErrorNoGpu(cv::Mat im, std::vector<cv::KeyPoint>& kps_goal, cv::Mat& desc_goal, int* num_matches = 0);
+
+
+
 private:
   CameraRenderApplication* app;
   int imgHeight;
