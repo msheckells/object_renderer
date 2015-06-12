@@ -92,6 +92,17 @@ Mat VirtualImageHandler::getVirtualDepth(double xp, double yp, double zp, double
   unsigned char* data = new unsigned char[width*height*bytesPerPixel];
   app->getDepthData(data);
   Mat im(height, width, CV_32F, data);
+  
+  for(int i = 0; i < height; i++)
+  {
+    for(int j = 0; j < width; j++)
+    {
+      if(im.at<float>(i, j) == 0)
+      {
+        im.at<float>(i, j) = -1;
+      }
+    }
+  }
   return im;
 }
 

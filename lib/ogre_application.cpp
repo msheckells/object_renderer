@@ -111,7 +111,7 @@ void OgreApplication::createCamera(void)
     mCamera->setPosition(Ogre::Vector3(0,0,80));
     // Look back along -Z
     mCamera->lookAt(Ogre::Vector3(0,0,-300));
-    mCamera->setNearClipDistance(5);
+    mCamera->setNearClipDistance(0.01);
 
 }
 //---------------------------------------------------------------------------

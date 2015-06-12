@@ -59,6 +59,14 @@ int main(int argc, char *argv[])
                                        2*qx*qy+2*qz*qw,1-2*qx*qx-2*qz*qz,2*qy*qz-2*qx*qw,    y,
                                        2*qx*qz-2*qy*qw,2*qy*qz+2*qx*qw,1-2*qx*qx-2*qy*qy,    z,
                                        0,0,0,1);
+      //im = vih.getVirtualImage(x, y, z, qw, qx, qy, qz);
+      //Eigen::Matrix3f rot;
+      //rot << 1-2*qy*qy-2*qz*qz, 2*qx*qy -2*qz*qw, 2*qx*qz+2*qy*qw, 
+      //         2*qx*qy+2*qz*qw,1-2*qx*qx-2*qz*qz, 2*qy*qz-2*qx*qw,
+      //         2*qx*qz-2*qy*qw,2*qy*qz+2*qx*qw,1-2*qx*qx-2*qy*qy;
+      //Eigen::Quaternionf quat(rot);
+      //std::cout << "orig quat=" << "(" << qw << "," << qx << "," << qy << "," << qz << ")" <<std::endl; 
+      //std::cout << "eig quat=" << "(" << quat.w() << "," << quat.x() << "," << quat.y() << "," << quat.z() << ")" <<std::endl; 
 
       std::vector<KeyPoint> kps;
       Mat desc;

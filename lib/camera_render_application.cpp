@@ -76,8 +76,9 @@ void CameraRenderApplication::setCameraPosition(double x, double y , double z)
 
 void CameraRenderApplication::setCameraOrientation(double w, double x, double y , double z)
 {
-  Ogre::Quaternion r(Ogre::Degree(90), Ogre::Vector3::UNIT_X);
-  mCamera->setOrientation(Ogre::Quaternion(w,x,y,z)*r);
+  //Ogre::Quaternion r(Ogre::Degree(90), Ogre::Vector3::UNIT_X);
+  //mCamera->setOrientation(Ogre::Quaternion(w,x,y,z)*r);
+  mCamera->setOrientation(Ogre::Quaternion(w,x,y,z));
 }
 
 void CameraRenderApplication::getCameraIntrinsics(double* fx, double* fy, double* cx, double* cy)
