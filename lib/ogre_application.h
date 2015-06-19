@@ -33,8 +33,8 @@ http://www.ogre3d.org/wiki/
 #  include <OISKeyboard.h>
 #  include <OISMouse.h>
 
-#  include <SdkTrays.h>
-#  include <SdkCameraMan.h>
+//#  include <SdkTrays.h>
+//#  include <SdkCameraMan.h>
 
 #ifdef OGRE_STATIC_LIB
 #  define OGRE_STATIC_GL

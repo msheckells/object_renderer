@@ -1,2 +1,4 @@
 add_executable(render_views render_views.cc)
 target_link_libraries(render_views  ogre_render virtual_image_proc)
+add_executable(frame_test frame_test.cc)
+target_link_libraries(frame_test  ogre_render virtual_image_proc)

@@ -59,7 +59,9 @@ Mat VirtualImageHandler::getVirtualImage(double xp, double yp, double zp, double
   app->getRenderData(width, height, data);
   Mat im(height, width, CV_8UC4, data);
   cvtColor(im, im, CV_BGRA2GRAY);
-  return im;
+  Mat im_clone = im.clone();
+  delete[] data;
+  return im_clone;
 }
 
 Mat VirtualImageHandler::getVirtualDepth(double xp, double yp, double zp, double w, double x, double y, double z)
@@ -76,7 +78,9 @@ Mat VirtualImageHandler::getVirtualDepth(double xp, double yp, double zp, double
   unsigned char* data = new unsigned char[width*height*bytesPerPixel];
   app->getDepthData(data);
   Mat im(height, width, CV_32F, data);
-  return im;
+  Mat im_clone = im.clone();
+  delete[] data;
+  return im_clone;
 }
 Mat VirtualImageHandler::getVirtualDepth(double xp, double yp, double zp, double xl, double yl, double zl)
 {

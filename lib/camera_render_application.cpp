@@ -63,6 +63,8 @@ void CameraRenderApplication::getCameraPosition(double* x, double* y , double* z
 void CameraRenderApplication::getCameraOrientation(double* w, double* x, double* y , double* z)
 {
   Ogre::Quaternion q =  mCamera->getOrientation();
+  Ogre::Quaternion rinv(Ogre::Degree(-180), Ogre::Vector3::UNIT_X);
+  q = q*rinv;
   *w = q.w;
   *x = q.x;
   *y = q.y;
@@ -76,9 +78,8 @@ void CameraRenderApplication::setCameraPosition(double x, double y , double z)
 
 void CameraRenderApplication::setCameraOrientation(double w, double x, double y , double z)
 {
-  //Ogre::Quaternion r(Ogre::Degree(90), Ogre::Vector3::UNIT_X);
-  //mCamera->setOrientation(Ogre::Quaternion(w,x,y,z)*r);
-  mCamera->setOrientation(Ogre::Quaternion(w,x,y,z));
+  Ogre::Quaternion r(Ogre::Degree(180), Ogre::Vector3::UNIT_X);
+  mCamera->setOrientation(Ogre::Quaternion(w,x,y,z)*r);
 }
 
 void CameraRenderApplication::getCameraIntrinsics(double* fx, double* fy, double* cx, double* cy)
@@ -106,38 +107,3 @@ void CameraRenderApplication::setCameraLookAt(double x, double y , double z)
 {
   mCamera->lookAt(Ogre::Vector3(x,y,z));
 }
-
-//---------------------------------------------------------------------------
-/*
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-    int main(int argc, char *argv[])
-    {
-        // Create application object
-        CameraRenderApplication app;
-        int width = 752;
-        int height = 480;
-        size_t bytesPerPixel = app.getBytesPerPixel();
-        try {
-            app.go();
-            unsigned char* data = new unsigned char[width*height*bytesPerPixel];
-            while(app.renderOnce())
-            {
-              app.getRenderData(width, height, data);     
-            }
-            app.destroyScene();
-        } catch(Ogre::Exception& e)  {
-            std::cerr << "An exception has occurred: " <<
-                e.getFullDescription().c_str() << std::endl;
-        }
-
-        return 0;
-    }
-
-#ifdef __cplusplus
-}
-#endif
-*/
-//---------------------------------------------------------------------------

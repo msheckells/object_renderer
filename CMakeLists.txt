@@ -3,12 +3,9 @@ project (object_renderer)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 
-#ADD_DEFINITIONS(-g -O -std=c++0x -pthread)
 ADD_DEFINITIONS(-std=c++0x)
-#ADD_DEFINITIONS(-g -O -std=c++0x -pthread -Wl,--no-undefined  -I/usr/include/eigen3)
-#ADD_DEFINITIONS(-g -O -pthread)
 
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Vision-based Optimal Control")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Object Renderer")
 SET(CPACK_PACKAGE_VENDOR "Matt Sheckells")
 #SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ReadMe.txt")
 #SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING")
@@ -16,29 +13,6 @@ SET(CPACK_PACKAGE_VERSION_MAJOR "0")
 SET(CPACK_PACKAGE_VERSION_MINOR "1")
 SET(CPACK_PACKAGE_VERSION_PATCH "0")
 SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
-
-## Options for building this Project:
-option(BUILD_TESTS "BUILD_TESTS" ON)
-# Will add more like disabling est if not needed etc
-#option(USE_VIEWER "USE_VIEWER" ON)
-#option(DISABLE_EST "DISABLE_ESTIMATION" OFF)
-
-#SET(CPACK_STRIP_FILES "bin/MyExecutable")
-#SET(CPACK_SOURCE_STRIP_FILES "")
-
-#find_package(OpenGL REQUIRED)
-#find_package(GLUT REQUIRED)
-#include_directories( ${OPENGL_INCLUDE_DIRS}  ${GLUT_INCLUDE_DIRS} )
-#target_link_libraries( ${OpenGL_LIBRARIES} ${GLUT_LIBRARY} )
-
-# We break this project gcop into smaller libraries as:
-# gcop_systems.so gcop_views.so gcop_algos.so gcop_est.so
-# Utils folder is linked into all the above libraries
-
-# Instead of a common variable called LIBS we make separate LIBS for each the submodule library
-# 	SYS_LIBS	ALGO_LIBS	VIEWER_LIBS	UTIL_LIBS EST_LIBS
-# Any Libs needed specifically by testing binaries is named based on the testing bin name
-# Example: Camtest bin needs ABC library then there will be a variable Cam_LIBS with the Libraries needed by the Camtest (It may be empty if nothing is needed)
 
 find_package(PkgConfig REQUIRED)
 
@@ -49,6 +23,8 @@ include_directories( ${EIGEN3_INCLUDE_DIRS} )
 
 #find_package(Eigen REQUIRED)
 #include_directories(${Eigen_INCLUDE_DIRS})
+
+find_package(Boost REQUIRED COMPONENTS system)
 
 find_package( OpenCV REQUIRED)
 include_directories( ${OpenCV_INCLUDE_DIRS} )

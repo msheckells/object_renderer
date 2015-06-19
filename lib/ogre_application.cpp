@@ -17,6 +17,8 @@ http://www.ogre3d.org/wiki/
 
 #include "ogre_application.h"
 #include <OgreLogManager.h>
+#include <OgreHardwarePixelBuffer.h>
+#include <OgreWindowEventUtilities.h>
 
 #if OGRE_PLATFORM == OGRE_PLATFORM_APPLE
 #include <macUtils.h>
@@ -111,7 +113,19 @@ void OgreApplication::createCamera(void)
     mCamera->setPosition(Ogre::Vector3(0,0,80));
     // Look back along -Z
     mCamera->lookAt(Ogre::Vector3(0,0,-300));
-    mCamera->setNearClipDistance(0.01);
+    double f = 100.0; // far clip distance
+    double n = 0.001; // near clip distance
+    double w =  mWindow->getWidth();
+    double h =  mWindow->getHeight();
+    double fx = 500;
+    double fy = 500;
+    double cx =  mWindow->getWidth()/2.;
+    double cy =  mWindow->getHeight()/2.;
+    Ogre::Matrix4 PM(2*fx/w, 0.0, -1+(2*cx/w), 0,
+                     0, 2*fy/h, -1+(2*cy/h), 0,
+                     0, 0, -(f+n)/(f-n), -2*f*n/(f-n),
+                     0,0,-1,0);
+    mCamera->setCustomProjectionMatrix(true, PM);
 
 }
 //---------------------------------------------------------------------------
@@ -138,7 +152,7 @@ void OgreApplication::createViewports(void)
     vp->setBackgroundColour(Ogre::ColourValue(0.0,0.0,0.0));
 
     // Alter the camera aspect ratio to match the viewport
-    mCamera->setAspectRatio(Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));
+    //mCamera->setAspectRatio(Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));
 }
 
 void OgreApplication::createDepthRTT(void)
