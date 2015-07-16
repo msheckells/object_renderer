@@ -64,8 +64,8 @@ bool OgreApplication::configure(void)
         Ogre::RenderSystem * r=rs.at(0); 
         r->setConfigOption("Full Screen","No");  
         r->setConfigOption("Video Mode","640 x 480"); 
-        r->setConfigOption("Display Frequency","50 Hz");
-        r->setConfigOption("FSAA","16");
+        r->setConfigOption("Display Frequency","200 Hz");
+        r->setConfigOption("FSAA","0");
         r->setConfigOption("Fixed Pipeline Enabled","Yes");
         r->setConfigOption("RTT Preferred Mode","FBO");
         r->setConfigOption("VSync","No");
@@ -73,6 +73,7 @@ bool OgreApplication::configure(void)
         //r->setConfigOption("Video Mode","800 x 600 @ 16-bit colour"); 
         mRoot->setRenderSystem(r); 
         mWindow = mRoot->initialise(true, "OGRE Render Window");
+        //mWindow->setHidden(true);
         return true;
     }
     else
@@ -113,12 +114,12 @@ void OgreApplication::createCamera(void)
     mCamera->setPosition(Ogre::Vector3(0,0,80));
     // Look back along -Z
     mCamera->lookAt(Ogre::Vector3(0,0,-300));
-    double f = 100.0; // far clip distance
+    double f = 300.0; // far clip distance
     double n = 0.001; // near clip distance
     double w =  mWindow->getWidth();
     double h =  mWindow->getHeight();
-    double fx = 500;
-    double fy = 500;
+    double fx = 400;
+    double fy = 400;
     double cx =  mWindow->getWidth()/2.;
     double cy =  mWindow->getHeight()/2.;
     Ogre::Matrix4 PM(2*fx/w, 0.0, -1+(2*cx/w), 0,
@@ -288,8 +289,6 @@ size_t OgreApplication::getBytesPerDepthPixel(void)
 
 void OgreApplication::getDepthData(unsigned char* data)
 {
-  Ogre::TexturePtr texPtr = Ogre::TextureManager::getSingleton().getByName("DepthMap");
-  Ogre::HardwarePixelBufferSharedPtr pixelBuffer =  texPtr->getBuffer();
   size_t len = mWindow->getWidth()*mWindow->getHeight()*this->getBytesPerDepthPixel();
   
   if(data)

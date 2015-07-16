@@ -77,6 +77,7 @@ public:
     int getWindowHeight(void);
     void saveDepthMap(std::string filename);
 
+    unsigned char* mDepthBuffer;
 protected:
     virtual void preRenderTargetUpdate(const Ogre::RenderTargetEvent& rte);
     virtual void postRenderTargetUpdate(const Ogre::RenderTargetEvent& rte);
@@ -99,9 +100,7 @@ protected:
     Ogre::String                mPluginsCfg;
     Ogre::Material*             mDepthMaterial;
     Ogre::RenderSystem*             mRenderSys;
-    unsigned char* mDepthBuffer;
 
-    // Added for Mac compatibility
     Ogre::String                 m_ResourcePath;
 
 #ifdef OGRE_STATIC_LIB

@@ -24,7 +24,11 @@ public:
   cv::Mat getVirtualDepth(double xp, double yp, double zp, double xl, double yl, double zl);
   cv::Mat getVirtualDepth(double xp, double yp, double zp, double w, double x, double y, double z);
   cv::Mat getVirtualImage(double xp, double yp, double zp, double xl, double yl, double zl);    
-  cv::Mat getVirtualImage(double xp, double yp, double zp, double w, double x, double y, double z);    
+  cv::Mat getVirtualImage(double xp, double yp, double zp, double w, double x, double y, double z);
+  void getVirtualImageAndDepthInternal(cv::Mat& image, cv::Mat& depth, double xp, 
+    double yp, double zp, double w, double x, double y, double z);
+  void getVirtualImageAndDepth(cv::Mat& image, cv::Mat& depth, 
+    double xp, double yp, double zp, double w, double x, double y, double z);
   unsigned char* getVirtualImage2(double xp, double yp, double zp, double w, double x, double y, double z);    
   cv::Mat getVirtualImage3(double xp, double yp, double zp, double w, double x, double y, double z);
 
@@ -41,6 +45,8 @@ private:
   CameraRenderApplication* app;
   int imgHeight;
   int imgWidth;
+  unsigned char* int_depth_data;
+  unsigned char* int_data;
 };
 
 

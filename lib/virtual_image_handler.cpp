@@ -12,10 +12,18 @@ VirtualImageHandler::VirtualImageHandler(CameraRenderApplication* cra) :
   imgWidth(app->getWindowWidth())
 {
   std::cout << "Image Size: " << imgWidth << "x" <<imgHeight << std::endl;
+  int width = imgWidth;
+  int height = imgHeight;
+  size_t bytesPerPixel = app->getBytesPerPixel();
+  size_t bytesPerDepthPixel = app->getBytesPerDepthPixel();
+  int_depth_data = app->mDepthBuffer;//new unsigned char[width*height*bytesPerDepthPixel];
+  int_data = new unsigned char[width*height*bytesPerPixel];
 }
 //---------------------------------------------------------------------------
 VirtualImageHandler::~VirtualImageHandler()
 {
+  delete[] int_depth_data;
+  delete[] int_data;
 }
   
 int VirtualImageHandler::getImageHeight()
@@ -42,6 +50,52 @@ unsigned char* VirtualImageHandler::getVirtualImage2(double xp, double yp, doubl
   unsigned char* data = new unsigned char[width*height*bytesPerPixel];
   app->getRenderData(width, height, data);
   return data;
+}
+void VirtualImageHandler::getVirtualImageAndDepthInternal(Mat& image, Mat& depth, double xp, 
+  double yp, double zp, double w, double x, double y, double z)
+{
+  int width = imgWidth;
+  int height = imgHeight;
+  size_t bytesPerPixel = app->getBytesPerPixel();
+
+  app->setCameraPosition(xp,yp,zp);
+  app->setCameraOrientation(w,x,y,z);
+
+  app->renderOnce();
+
+  app->getRenderData(width, height, int_data);
+  image = Mat(height, width, CV_8UC4, int_data);
+  cvtColor(image, image, CV_BGRA2GRAY);
+
+  //app->getDepthData(int_depth_data);
+  depth = Mat(height, width, CV_32F, int_depth_data);
+}
+
+void VirtualImageHandler::getVirtualImageAndDepth(Mat& image, Mat& depth, double xp, double yp, 
+  double zp, double w, double x, double y, double z)
+{
+  int width = imgWidth;
+  int height = imgHeight;
+  size_t bytesPerPixel = app->getBytesPerPixel();
+  size_t bytesPerDepthPixel = app->getBytesPerDepthPixel();
+
+  app->setCameraPosition(xp,yp,zp);
+  app->setCameraOrientation(w,x,y,z);
+
+  app->renderOnce();
+
+  unsigned char* data = new unsigned char[width*height*bytesPerPixel];
+  app->getRenderData(width, height, data);
+  Mat im(height, width, CV_8UC4, data);
+  cvtColor(im, im, CV_BGRA2GRAY);
+  image = im.clone();
+  delete[] data;
+
+  unsigned char* depth_data = new unsigned char[width*height*bytesPerDepthPixel];
+  app->getDepthData(depth_data);
+  Mat dep(height, width, CV_32F, depth_data);
+  depth = dep.clone();
+  delete[] depth_data;
 }
 
 Mat VirtualImageHandler::getVirtualImage(double xp, double yp, double zp, double w, double x, double y, double z)
