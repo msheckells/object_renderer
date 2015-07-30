@@ -18,9 +18,11 @@ http://www.ogre3d.org/wiki/
 #include "camera_render_application.h"
 
 //---------------------------------------------------------------------------
-CameraRenderApplication::CameraRenderApplication(std::string resourcePath) :
+CameraRenderApplication::CameraRenderApplication(std::string resourcePath, double cam_fx, double cam_fy) :
   OgreApplication(resourcePath)
 {
+  fx = cam_fx;
+  fy = cam_fy;
 }
 //---------------------------------------------------------------------------
 CameraRenderApplication::~CameraRenderApplication(void)

@@ -25,7 +25,7 @@ http://www.ogre3d.org/wiki/
 class CameraRenderApplication : public OgreApplication
 {
 public:
-    CameraRenderApplication(std::string resourcePath);
+    CameraRenderApplication(std::string resourcePath, double cam_fx = 400, double cam_fy = 400);
     virtual ~CameraRenderApplication(void);
 
     void getCameraIntrinsics(double* fx, double* fy, double* cx, double* cy);

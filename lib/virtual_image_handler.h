@@ -35,9 +35,12 @@ public:
   void getKeypointsAndDescriptorsNoGpu(cv::Mat& im, std::vector<cv::KeyPoint>& kps, cv::Mat& desc);
   void getKeypointsAndDescriptors(cv::Mat& im, std::vector<cv::KeyPoint>& kps, cv::gpu::GpuMat& desc_gpu);
   void filterKeypointMatches( std::vector < std::vector< cv::DMatch > >& matches, std::vector< cv::DMatch >& filtered_matches, double match_ratio);
+  void filterKeypointsEpipolarConstraint(const std::vector<cv::Point2f>& pts1,
+    const std::vector<cv::Point2f>& pts2, std::vector<cv::Point2f>& pts1_out, std::vector<cv::Point2f>& pts2_out);
   double getMeanKeypointError(std::vector<cv::KeyPoint>& kps1, std::vector<cv::KeyPoint>& kps2, std::vector< cv::DMatch >& matches);
   double getMeanKeypointError(cv::Mat im, std::vector<cv::KeyPoint>& kps_goal, cv::gpu::GpuMat& desc_gpu_goal, int* num_matches = 0);
   double getMeanKeypointErrorNoGpu(cv::Mat im, std::vector<cv::KeyPoint>& kps_goal, cv::Mat& desc_goal, int* num_matches = 0);
+  void getFilteredFeatureMatches(cv::Mat im1, cv::Mat im2, std::vector<cv::Point2f>& ps1_out, std::vector<cv::Point2f>& ps2_out);
 
 
 

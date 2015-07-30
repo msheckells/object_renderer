@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/nonfree/features2d.hpp>
 #include "virtual_image_handler.h"
 
@@ -219,6 +220,25 @@ void VirtualImageHandler::filterKeypointMatches( std::vector < std::vector< DMat
   }
 }
 
+void VirtualImageHandler::filterKeypointsEpipolarConstraint(const std::vector<cv::Point2f>& pts1,
+  const std::vector<cv::Point2f>& pts2, std::vector<cv::Point2f>& pts1_out, std::vector<cv::Point2f>& pts2_out)
+{
+  assert(pts1.size() == pts2.size());
+
+  pts1_out.clear();
+  pts2_out.clear();
+  std::vector<unsigned char> status;
+  cv::Mat fMat = findFundamentalMat(pts1, pts2, CV_FM_RANSAC, 3, .99, status);
+  for(int i = 0; i < status.size(); i++)
+  {
+    if(status[i])
+    {
+      pts1_out.push_back(pts1[i]);
+      pts2_out.push_back(pts2[i]);
+    }
+  }
+}
+
 double VirtualImageHandler::getMeanKeypointError(std::vector<KeyPoint>& kps1, std::vector<KeyPoint>& kps2, std::vector< DMatch >& matches)
 {
   double error = 0.;
@@ -232,6 +252,39 @@ double VirtualImageHandler::getMeanKeypointError(std::vector<KeyPoint>& kps1, st
   }
 
   return error;
+}
+
+void VirtualImageHandler::getFilteredFeatureMatches(Mat im1, Mat im2, std::vector<Point2f>& ps1_out, std::vector<Point2f>& ps2_out)
+{
+  ps1_out.clear();
+  ps2_out.clear();
+
+  std::vector<KeyPoint> kps1, kps2;
+  gpu::GpuMat  desc_gpu1, desc_gpu2;
+  std::vector < std::vector< DMatch > > matches;
+  std::vector< DMatch > good_matches;
+ 
+  getKeypointsAndDescriptors(im1, kps1, desc_gpu1);
+  getKeypointsAndDescriptors(im2, kps2, desc_gpu2);
+
+  gpu::BFMatcher_GPU matcher;
+  matcher.knnMatch(desc_gpu1, desc_gpu2, matches, 2);
+  filterKeypointMatches(matches, good_matches, 0.5);
+
+  std::vector<Point2f> ps1, ps2;
+  for(unsigned int i = 0; i < good_matches.size(); i++)
+  {
+    Point2f p1 = kps1[good_matches[i].queryIdx].pt;
+    Point2f p2 = kps2[good_matches[i].trainIdx].pt;
+    ps1.push_back(p1);
+    ps2.push_back(p2);
+  }
+
+  std::vector<Point2f> ps1_filt, ps2_filt;
+  filterKeypointsEpipolarConstraint(ps1, ps2, ps1_filt, ps2_filt);
+  
+  ps1_out = ps1_filt;
+  ps2_out = ps2_filt;
 }
 
 double VirtualImageHandler::getMeanKeypointError(Mat im, std::vector<KeyPoint>& kps_goal, gpu::GpuMat& desc_gpu_goal, int* num_matches)

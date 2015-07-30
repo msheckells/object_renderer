@@ -16,14 +16,22 @@ int main(int argc, char *argv[])
 
   if (argc < 5)
   {
-    std::cout << "Usage: " << argv[0] << " <output_dir> <model_file> <radius> <num_samples>" << std::endl;
+    std::cout << "Usage: " << argv[0] << " <output_dir> <model_file> <radius> <num_samples> [<start_num>]" << std::endl;
     return -1;  
   }
 
   std::string output_dir(argv[1]);
   double sample_radius = std::stod(argv[3]);
   double num_samples = std::stoi(argv[4]);
-  
+  int start_num;
+  if(argc >= 5)
+  {
+    start_num = std::stoi(argv[5]);
+  }
+  else
+  {
+    start_num = 0;
+  }
 
   // Create application object
   CameraRenderApplication app("../../cfg/");
@@ -81,34 +89,37 @@ int main(int argc, char *argv[])
       imshow("Image Keypoints", kp_im);
       waitKey(1);
     
+      int file_num = i + start_num;
+
       std::stringstream ss;
-      ss << output_dir << "/keypoints" << std::setw(3) << std::setfill('0') << i << ".xml";
+      ss << output_dir << "/keypoints" << std::setw(3) << std::setfill('0') << file_num << ".xml";
       FileStorage fs(ss.str(), FileStorage::WRITE);
       write( fs, "keypoints", kps );
       fs.release();   
 
       ss.str(std::string());
-      ss << output_dir << "/pose" << std::setw(3) << std::setfill('0') << i << ".xml";
+      ss << output_dir << "/pose" << std::setw(3) << std::setfill('0') << file_num << ".xml";
       FileStorage fs_pose(ss.str(), FileStorage::WRITE);
       write( fs_pose, "pose", pose );
       fs_pose.release();   
 
       ss.str(std::string());
-      ss << output_dir << "/descriptors" << std::setw(3) << std::setfill('0') << i << ".xml";
+      ss << output_dir << "/descriptors" << std::setw(3) << std::setfill('0') << file_num << ".xml";
       FileStorage fs_desc(ss.str(), FileStorage::WRITE);
       write( fs_desc, "descriptors", desc );
       fs_desc.release();   
 
       ss.str(std::string());
-      ss << output_dir << "/depth" << std::setw(3) << std::setfill('0') << i << ".xml";
+      ss << output_dir << "/depth" << std::setw(3) << std::setfill('0') << file_num << ".xml";
       FileStorage fs_depth(ss.str(), FileStorage::WRITE);
       write( fs_depth, "depth", depth );
       fs_depth.release();   
 
       ss.str(std::string());
-      ss << output_dir << "/keyframe" << std::setw(3) << std::setfill('0') << i << ".jpg";
+      ss << output_dir << "/keyframe" << std::setw(3) << std::setfill('0') << file_num << ".jpg";
       imwrite(ss.str(), im );
       //app.saveDepthMap(std::string("depth") + std::to_string(i) + std::string(".png"));
+      getchar();
     }
     app.destroyScene();
   } catch(Ogre::Exception& e)  {

@@ -35,7 +35,8 @@ OgreApplication::OgreApplication(std::string resourcePath)
 {
     //m_ResourcePath = "../../cfg/";
     m_ResourcePath = resourcePath;
-   
+    fx = 400;
+    fy = 400;
 }
 
 //---------------------------------------------------------------------------
@@ -118,8 +119,6 @@ void OgreApplication::createCamera(void)
     double n = 0.001; // near clip distance
     double w =  mWindow->getWidth();
     double h =  mWindow->getHeight();
-    double fx = 400;
-    double fy = 400;
     double cx =  mWindow->getWidth()/2.;
     double cy =  mWindow->getHeight()/2.;
     Ogre::Matrix4 PM(2*fx/w, 0.0, -1+(2*cx/w), 0,

@@ -102,6 +102,9 @@ protected:
     Ogre::RenderSystem*             mRenderSys;
 
     Ogre::String                 m_ResourcePath;
+ 
+    double fx;
+    double fy;
 
 #ifdef OGRE_STATIC_LIB
     Ogre::StaticPluginLoader m_StaticPluginLoader;
