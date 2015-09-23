@@ -13,14 +13,15 @@ using namespace cv;
 CameraRenderApplication* app;
 VirtualImageHandler* vih;
 
-void saveView(double x, double y, double z, std::string output_dir, int file_num)
+void saveView(double x, double y, double z, double lookx, double looky, double lookz,
+   std::string output_dir, int file_num)
 {
   try
   {
     app->main_light->setPosition(x,y,z);
     app->main_light->setDirection(-x,-y,-z);
-    Mat im = vih->getVirtualImage(x, y, z, 0, 0, 0);
-    Mat depth = vih->getVirtualDepth(x, y, z, 0, 0, 0);
+    Mat im = vih->getVirtualImage(x, y, z, lookx, looky, lookz);
+    Mat depth = vih->getVirtualDepth(x, y, z, lookx, looky, lookz);
   
     double qw, qx, qy, qz;
     app->getCameraOrientation(&qw, &qx, &qy, &qz);
@@ -85,26 +86,60 @@ void saveView(double x, double y, double z, std::string output_dir, int file_num
 
 }
 
+void saveView(double x, double y, double z, std::string output_dir, int file_num)
+{
+  saveView(x, y, z, 0, 0, 0, output_dir, file_num);
+}
+
 int main(int argc, char *argv[])
 {
 
   if (argc < 5)
   {
-    std::cout << "Usage: " << argv[0] << " <output_dir> <model_file> <radius> <num_samples> [<start_num>]" << std::endl;
+    std::cout << "Usage: " << argv[0] << " <output_dir> <model_file> <radius> <num_samples> [-start_num <num> -mode <mode> -look x y z]" << std::endl;
     return -1;  
   }
 
   std::string output_dir(argv[1]);
   double sample_radius = std::stod(argv[3]);
   double num_samples = std::stoi(argv[4]);
-  int start_num;
-  if(argc >= 6)
+  int start_num = 0;
+  std::string mode = "sphere";
+  double lookx = 0, looky = 0, lookz = 0;
+  double startx = 0, starty = 0, startz = 0;
+
+  for(int i = 5; i < argc; i++)
   {
-    start_num = std::stoi(argv[5]);
-  }
-  else
-  {
-    start_num = 0;
+    std::string option(argv[i]);
+    if(option == "-start_num" && i+1 < argc)
+    {
+      start_num = std::stoi(argv[i+1]);
+      i++;
+    }
+    else if(option == "-mode" && i+1 < argc)
+    {
+      mode = argv[i+1];
+      i++;
+    }
+    else if(option == "-look" && i+3 < argc)
+    {
+      lookx = std::stod(argv[i+1]);
+      looky = std::stod(argv[i+2]);
+      lookz = std::stod(argv[i+3]);
+      i+=3;
+    }
+    else if(option == "-start" && i+3 < argc)
+    {
+      startx = std::stod(argv[i+1]);
+      starty = std::stod(argv[i+2]);
+      startz = std::stod(argv[i+3]);
+      i+=3;
+    }
+    else
+    {
+      std::cout << option << " is not a valid option" << std::endl;
+      return -1;
+    }
   }
 
   // Create application object
@@ -120,28 +155,52 @@ int main(int argc, char *argv[])
   write( fs_intrinsics, "intrinsics",  vih->getCameraIntrinsics());
   fs_intrinsics.release();   
 
-  if(num_samples == -1)
+  if(mode == "sphere")
   {
-    // Do 6 views
-    saveView(-sample_radius, 0, 0, output_dir, start_num+0);
-    saveView( sample_radius, 0, 0, output_dir, start_num+1);
-    saveView(0, -sample_radius, 0, output_dir, start_num+2);
-    saveView(0,  sample_radius, 0, output_dir, start_num+3);
-    saveView(0, 0, -sample_radius, output_dir, start_num+4);
-    saveView(0, 0,  sample_radius, output_dir, start_num+5);
+    if(num_samples == -1)
+    {
+      // Do 6 views
+      saveView(-sample_radius + lookx, looky, lookz, lookx, looky, lookz, output_dir, start_num+0);
+      getchar();
+      saveView( sample_radius + lookx, looky, lookz, lookx, looky, lookz, output_dir, start_num+1);
+      getchar();
+      saveView(lookx, -sample_radius + looky, lookz, lookx, looky, lookz, output_dir, start_num+2);
+      getchar();
+      saveView(lookx,  sample_radius + looky, lookz, lookx, looky, lookz, output_dir, start_num+3);
+      getchar();
+      saveView(lookx, looky, -sample_radius + lookz, lookx, looky, lookz, output_dir, start_num+4);
+      getchar();
+      saveView(lookx, looky,  sample_radius + lookz, lookx, looky, lookz, output_dir, start_num+5);
+      getchar();
+    }
+    else
+    {
+      for(int i = 0; i < num_samples; i++)
+      {
+        double t = (double(rand())/RAND_MAX) * (2*M_PI);
+        double p = (double(rand())/RAND_MAX) * (M_PI);
+        double x = sample_radius*cos(t)*sin(p) + lookx;
+        double y = sample_radius*sin(t)*sin(p) + looky;
+        double z = sample_radius*cos(p) + lookz;
+        saveView(x, y, z, lookx, looky, lookz, output_dir, start_num+i);
+        getchar();
+      }
+    }
   }
-  else
+  else if(mode == "line")
   {
     for(int i = 0; i < num_samples; i++)
     {
-      double t = (double(rand())/RAND_MAX) * (2*M_PI);
-      double p = (double(rand())/RAND_MAX) * (M_PI);
-      double x = sample_radius*cos(t)*sin(p);
-      double y = sample_radius*sin(t)*sin(p);
-      double z = sample_radius*cos(p);
-      saveView(x, y, z, output_dir, start_num+i);
+      double x = startx + -sample_radius/2 + sample_radius*double(i)/num_samples;
+      double y = starty + -sample_radius/2 + sample_radius*double(i)/num_samples;
+      double z = startz + -sample_radius/2 + sample_radius*double(i)/num_samples;
+      saveView(x, y, z, x+ lookx, y+looky, z+lookz, output_dir, start_num+i);
       getchar();
     }
+  }
+  else
+  {
+    std::cout << "Mode " << mode << " not supported" << std::endl;
   }
   return 0;
 }

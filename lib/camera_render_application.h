@@ -35,9 +35,11 @@ public:
     void setCameraOrientation(double w, double x, double y, double z);
     void setCameraLookAt(double x, double y, double z);
     void loadModel(std::string entity_name, std::string filename);
+    void createCylinder(double x, double y, double z, double h, double r);
     Ogre::Light* main_light;
 protected:
     virtual void createScene(void);
+    int cyl_id;
 };
 
 //---------------------------------------------------------------------------

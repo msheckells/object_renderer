@@ -14,12 +14,13 @@ Tutorial Framework (for Ogre 1.9)
 http://www.ogre3d.org/wiki/
 -----------------------------------------------------------------------------
 */
-
 #include "camera_render_application.h"
+#include <OgreManualObject.h>
 
 //---------------------------------------------------------------------------
 CameraRenderApplication::CameraRenderApplication(std::string resourcePath, double cam_fx, double cam_fy) :
-  OgreApplication(resourcePath)
+  OgreApplication(resourcePath),
+  cyl_id(0)
 {
   fx = cam_fx;
   fy = cam_fy;
@@ -27,6 +28,81 @@ CameraRenderApplication::CameraRenderApplication(std::string resourcePath, doubl
 //---------------------------------------------------------------------------
 CameraRenderApplication::~CameraRenderApplication(void)
 {
+}
+
+void CameraRenderApplication::createCylinder(double x, double y, double z, double h, double r)
+{
+  const int cylinder_circle_resolution = 500;
+  Ogre::Degree theta(0);
+  Ogre::Degree alpha (360./cylinder_circle_resolution);
+
+  Ogre::Vector3 cylinder_circle1[cylinder_circle_resolution];
+  Ogre::Vector3 cylinder_circle2[cylinder_circle_resolution];
+  Ogre::Vector3 cylinder_circle1_center;
+  Ogre::Vector3 cylinder_circle2_center;
+
+  cylinder_circle1_center.x = x;
+  cylinder_circle1_center.y = y;
+  cylinder_circle1_center.z = z;
+  cylinder_circle2_center = cylinder_circle1_center;
+  cylinder_circle2_center.z += h;
+
+  for(int i = 0; i < cylinder_circle_resolution; i++)
+  {
+    theta += alpha;
+    cylinder_circle1[i] = cylinder_circle1_center;
+    cylinder_circle1[i].x += r*Ogre::Math::Cos(theta);
+    cylinder_circle1[i].y += r*Ogre::Math::Sin(theta);
+    cylinder_circle2[i] = cylinder_circle1[i];
+    cylinder_circle2[i].z += h;
+  }
+
+  Ogre::ManualObject* cylinder = mSceneMgr->createManualObject("Cylinder" + std::to_string(cyl_id++));
+
+  // Face 1
+  cylinder->begin("BaseWhiteNoLighting", Ogre::RenderOperation::OT_TRIANGLE_FAN);
+  cylinder->colour(Ogre::ColourValue(0.0f, 0.0f, 1.0f));
+  cylinder->position(cylinder_circle1_center);
+  for(int i = 0; i < cylinder_circle_resolution; i++)
+  {
+    cylinder->position(cylinder_circle1[i]);
+  }
+  cylinder->position(cylinder_circle1[0]);
+  cylinder->end();
+
+  // Curved Surface
+  cylinder->begin("BaseWhiteNoLighting", Ogre::RenderOperation::OT_TRIANGLE_FAN);
+  cylinder->colour(Ogre::ColourValue(0.2f, 0.6f, 1.0f));
+  for(int i = 0; i < cylinder_circle_resolution-1; i++)
+  {
+    cylinder->position(cylinder_circle1[i]);
+    cylinder->position(cylinder_circle2[i]);
+    cylinder->position(cylinder_circle1[i+1]);
+
+    cylinder->position(cylinder_circle1[i+1]);
+    cylinder->position(cylinder_circle2[i]);
+    cylinder->position(cylinder_circle2[i+1]);
+  }
+  cylinder->position(cylinder_circle1[cylinder_circle_resolution-1]);
+  cylinder->position(cylinder_circle2[cylinder_circle_resolution-1]);
+  cylinder->position(cylinder_circle1[0]);
+  cylinder->position(cylinder_circle1[0]);
+  cylinder->position(cylinder_circle2[cylinder_circle_resolution-1]);
+  cylinder->position(cylinder_circle2[0]);
+  cylinder->end();
+  
+  // Face 2
+  cylinder->begin("BaseWhiteNoLighting", Ogre::RenderOperation::OT_TRIANGLE_FAN);
+  cylinder->colour(Ogre::ColourValue(0.0f, 0.0f, 1.0f));
+  cylinder->position(cylinder_circle2_center);
+  for(int i = 0; i < cylinder_circle_resolution; i++)
+  {
+    cylinder->position(cylinder_circle2[i]);
+  }
+  cylinder->position(cylinder_circle2[0]);
+  cylinder->end();
+
+  mSceneMgr->getRootSceneNode()->createChildSceneNode()->attachObject(cylinder);
 }
 
 //---------------------------------------------------------------------------

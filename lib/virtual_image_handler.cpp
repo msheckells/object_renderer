@@ -88,8 +88,7 @@ void VirtualImageHandler::getVirtualImageAndDepth(Mat& image, Mat& depth, double
   unsigned char* data = new unsigned char[width*height*bytesPerPixel];
   app->getRenderData(width, height, data);
   Mat im(height, width, CV_8UC4, data);
-  cvtColor(im, im, CV_BGRA2GRAY);
-  image = im.clone();
+  cvtColor(im, image, CV_BGR2GRAY);
   delete[] data;
 
   unsigned char* depth_data = new unsigned char[width*height*bytesPerDepthPixel];
@@ -228,7 +227,7 @@ void VirtualImageHandler::filterKeypointsEpipolarConstraint(const std::vector<cv
   pts1_out.clear();
   pts2_out.clear();
   std::vector<unsigned char> status;
-  cv::Mat fMat = findFundamentalMat(pts1, pts2, CV_FM_RANSAC, 3, .99, status);
+  cv::Mat fMat = findFundamentalMat(pts1, pts2, CV_FM_RANSAC, 4, .99, status);
   for(int i = 0; i < status.size(); i++)
   {
     if(status[i])
@@ -260,16 +259,34 @@ void VirtualImageHandler::getFilteredFeatureMatches(Mat im1, Mat im2, std::vecto
   ps2_out.clear();
 
   std::vector<KeyPoint> kps1, kps2;
-  gpu::GpuMat  desc_gpu1, desc_gpu2;
   std::vector < std::vector< DMatch > > matches;
   std::vector< DMatch > good_matches;
  
+#ifdef OBJ_REND_USE_GPU
+  gpu::GpuMat  desc_gpu1, desc_gpu2;
   getKeypointsAndDescriptors(im1, kps1, desc_gpu1);
   getKeypointsAndDescriptors(im2, kps2, desc_gpu2);
 
   gpu::BFMatcher_GPU matcher;
   matcher.knnMatch(desc_gpu1, desc_gpu2, matches, 2);
-  filterKeypointMatches(matches, good_matches, 0.5);
+#else
+  cv::Mat desc1, desc2;
+  getKeypointsAndDescriptorsNoGpu(im1, kps1, desc1);
+  getKeypointsAndDescriptorsNoGpu(im2, kps2, desc2);
+  BFMatcher matcher;
+  matcher.knnMatch(desc1, desc2, matches, 2); 
+#endif
+
+  Mat match_img, good_match_img;
+  filterKeypointMatches(matches, good_matches, 0.8);
+  /*
+  drawMatches(im1, kps1, im2, kps2, matches, match_img);
+  drawMatches(im1, kps1, im2, kps2, good_matches, good_match_img);
+  imshow("All Matches", match_img);
+  imshow("Good Matches", good_match_img);
+  */
+  std::cout << matches.size() << " matches" << std::endl;
+  std::cout << good_matches.size() << " good matches" << std::endl;
 
   std::vector<Point2f> ps1, ps2;
   for(unsigned int i = 0; i < good_matches.size(); i++)
@@ -282,7 +299,24 @@ void VirtualImageHandler::getFilteredFeatureMatches(Mat im1, Mat im2, std::vecto
 
   std::vector<Point2f> ps1_filt, ps2_filt;
   filterKeypointsEpipolarConstraint(ps1, ps2, ps1_filt, ps2_filt);
-  
+  std::cout << ps1_filt.size() << " epi matches" << std::endl;
+
+  /*
+  std::vector<cv::KeyPoint> epi_kps1, epi_kps2;
+  std::vector<std::vector<cv::DMatch>> epi_matches(ps1_filt.size());
+  for(int i = 0; i < ps1_filt.size(); i++)
+  {
+    epi_kps1.push_back(KeyPoint(ps1_filt[i].x, ps1_filt[i].y, 1));
+    epi_kps2.push_back(KeyPoint(ps2_filt[i].x, ps2_filt[i].y, 1));
+    epi_matches[i].push_back(DMatch(i, i, 0));
+  }
+  Mat epi_match_img;
+  drawMatches(im1, epi_kps1, im2, epi_kps2, epi_matches, epi_match_img);
+  imshow("Epi Matches", epi_match_img);
+  imshow("im1", im1);
+  waitKey(0);
+  */
+
   ps1_out = ps1_filt;
   ps2_out = ps2_filt;
 }
