@@ -74,7 +74,7 @@ bool OgreApplication::configure(void)
         //r->setConfigOption("Video Mode","800 x 600 @ 16-bit colour"); 
         mRoot->setRenderSystem(r); 
         mWindow = mRoot->initialise(true, "OGRE Render Window");
-        //mWindow->setHidden(true);
+        mWindow->setHidden(true);
         return true;
     }
     else
@@ -273,6 +273,7 @@ bool OgreApplication::renderOnce(void)
   Ogre::RenderTexture* depth_map = texPtr->getBuffer()->getRenderTarget();
   depth_map->update();
 
+  mWindow->update();
   return mRoot->renderOneFrame();
 }
 
