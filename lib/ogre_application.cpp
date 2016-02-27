@@ -266,6 +266,8 @@ void OgreApplication::saveDepthMap(std::string filename)
 
 bool OgreApplication::renderOnce(void)
 {
+  mWindow->update();//Update Image
+
   Ogre::WindowEventUtilities::messagePump();
 
   // Update depth RTT
@@ -273,7 +275,6 @@ bool OgreApplication::renderOnce(void)
   Ogre::RenderTexture* depth_map = texPtr->getBuffer()->getRenderTarget();
   depth_map->update();
 
-  mWindow->update();
   return mRoot->renderOneFrame();
 }
 
