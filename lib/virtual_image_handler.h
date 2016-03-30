@@ -23,6 +23,8 @@ public:
   cv::Mat getCameraIntrinsics();
   cv::Mat getVirtualDepth(double xp, double yp, double zp, double xl, double yl, double zl);
   cv::Mat getVirtualDepth(double xp, double yp, double zp, double w, double x, double y, double z);
+  void getVirtualDepthNoShader(cv::Mat& depth,  double xp,
+    double yp, double zp, double w, double x, double y, double z);
   cv::Mat getVirtualImage(double xp, double yp, double zp, double xl, double yl, double zl);    
   cv::Mat getVirtualImage(double xp, double yp, double zp, double w, double x, double y, double z);
   void getVirtualImageAndDepthInternal(cv::Mat& image, cv::Mat& depth, double xp, 

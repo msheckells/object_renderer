@@ -1,7 +1,12 @@
 #include <stdio.h>
 
+#include <Eigen/Dense>
+
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/nonfree/features2d.hpp>
+#include <opencv2/core/eigen.hpp>
+
+
 #include "virtual_image_handler.h"
 
 using namespace cv;
@@ -70,6 +75,80 @@ void VirtualImageHandler::getVirtualImageAndDepthInternal(Mat& image, Mat& depth
 
   //app->getDepthData(int_depth_data);
   depth = Mat(height, width, CV_32F, int_depth_data);
+}
+
+void VirtualImageHandler::getVirtualDepthNoShader(Mat& depth,  double xp,
+  double yp, double zp, double w, double x, double y, double z)
+{
+  depth = Mat(imgHeight, imgWidth, CV_32FC1, cv::Scalar(0));
+
+  size_t vertex_count, index_count;
+  Ogre::Vector3 *vertices;
+  unsigned long* indices;
+  Ogre::Vector3 position, scale;
+  Ogre::Quaternion orient;
+
+  app->getMeshInformation(app->model, vertex_count, vertices, index_count, indices,
+    app->model->getParentNode()->_getDerivedPosition(),
+    app->model->getParentNode()->_getDerivedOrientation(),
+    app->model->getParentNode()->_getDerivedScale()); 
+  Mat K = getCameraIntrinsics();
+  Eigen::Matrix3f K_eig;
+  cv2eigen(K,K_eig);
+
+  Eigen::Quaternionf pose_quat(w,x,y,z);
+  Eigen::Matrix4f pose_trfm;
+  pose_trfm.setIdentity();
+  pose_trfm.topLeftCorner<3,3>() = pose_quat.toRotationMatrix();
+  pose_trfm.block<3,1>(0,3) = Eigen::Vector3f(xp,yp,zp);
+  pose_trfm = pose_trfm.inverse();
+
+  for(int i = 0; i < index_count; i+=3)
+  {
+    Eigen::Vector3f p_projs[3];
+    double p_depths[3];
+    for(int k = 0; k < 3; k++)
+    {
+      Ogre::Vector3& p = vertices[i+k];
+      Eigen::Vector3f pe(p.x, p.y, p.z);
+      Eigen::Vector3f p_proj = K_eig*(pose_trfm*pe.homogeneous()).head<3>();
+      p_depths[k] = p_proj(2);
+      p_proj /= p_proj(2);
+      p_projs[k] = p_proj;
+    }
+    if(p_depths[0] < 0 && p_depths[1] < 0 && p_depths[2] < 0)
+      continue;
+    // Fill triangle
+    Eigen::Vector2f d1 = (p_projs[1] - p_projs[0]).head<2>();
+    Eigen::Vector2f d2 = (p_projs[2] - p_projs[0]).head<2>();
+    double dep_slope1 = p_depths[1] - p_depths[0];
+    double dep_slope2 = p_depths[2] - p_depths[0];
+    //std::cout << d1.norm() << " " << d2.norm() << std::endl;
+    for(double d1_step = 0; d1_step <= 1; d1_step+=1./d1.norm())
+    {
+      for(double d2_step = 0; d2_step <= 1; d2_step+=1./d2.norm())
+      {
+        if(d1_step + d2_step <= 1)
+        {
+          Eigen::Vector2f tri_pt =  p_projs[0].head<2>() + d1_step*d1 + d2_step*d2;
+          if(tri_pt(0) < imgWidth && tri_pt(0) >= 0 &&
+            tri_pt(1) < imgHeight && tri_pt(1) >= 0)
+          {
+            float p_depth = p_depths[0] + d1_step*dep_slope1 + d2_step*dep_slope2;
+            if(p_depth < 0)
+              continue;
+
+            if(depth.at<float>(int(tri_pt(1)), int(tri_pt(0))) == 0)
+              depth.at<float>(int(tri_pt(1)), int(tri_pt(0))) = p_depth;
+            else
+              depth.at<float>(int(tri_pt(1)), int(tri_pt(0))) =
+                min(depth.at<float>(int(tri_pt(1)), int(tri_pt(0))), p_depth);
+          }
+        }
+      }
+    }
+  }
+  medianBlur(depth, depth, 3);
 }
 
 void VirtualImageHandler::getVirtualImageAndDepth(Mat& image, Mat& depth, double xp, double yp, 
