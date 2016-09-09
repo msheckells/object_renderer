@@ -74,7 +74,7 @@ bool OgreApplication::configure(void)
         //r->setConfigOption("Video Mode","800 x 600 @ 16-bit colour"); 
         mRoot->setRenderSystem(r); 
         mWindow = mRoot->initialise(true, "OGRE Render Window");
-        //mWindow->setHidden(true);
+        mWindow->setHidden(true);
         return true;
     }
     else
@@ -266,6 +266,8 @@ void OgreApplication::saveDepthMap(std::string filename)
 
 bool OgreApplication::renderOnce(void)
 {
+  mWindow->update();//Update Image
+
   Ogre::WindowEventUtilities::messagePump();
 
   // Update depth RTT
